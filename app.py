@@ -1,5 +1,5 @@
-from flask import Flask, render_template, jsonify, g
-from database import load_jobs_from_db, load_job_from_db, get_db_connection
+from flask import Flask, render_template, jsonify, g , request
+from database import add_application_to_db, load_jobs_from_db, load_job_from_db, get_db_connection
 
 app = Flask(__name__)
 
@@ -23,12 +23,22 @@ def show_job(id):
       return "Not Found",404
     return render_template("jobpage.html", job=job, company_name="Mayank")
 
+
+@app.route("/job/<id>/apply" ,methods=['post'])
+def apply_to_job(id):
+  data=request.form
+  job=load_job_from_db(id)
+  add_application_to_db(id,data)
+  return render_template('application_submitted.html',application=data,job=job)
+
   # Ensure database connection is closed after each request
 @app.teardown_appcontext
 def close_db_connection(exception=None):
     db_connection = getattr(g, 'db_connection', None)
     if db_connection is not None:
         db_connection.close()
+
+  
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
